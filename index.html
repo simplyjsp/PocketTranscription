@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy-Focused Voice Transcriber</title>
+    <title>Voice Transcriber</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
 </head>
 <body>
-    <div id="root">
-        <h1>Privacy-Focused Voice Transcriber</h1>
-        <p>If you're seeing this message, it means React hasn't loaded properly.</p>
+    <div class="container">
+        <h1>Voice Transcriber</h1>
+        <p class="subtitle">Your cutting-edge tool for voice-to-text conversion</p>
+        <div class="glass-panel">
+            <button id="recordButton" class="btn">Start Recording</button>
+            <div id="timer" class="timer">00:00</div>
+            <textarea id="transcription" class="transcription" placeholder="Transcription will appear here..." readonly></textarea>
+            <button id="downloadButton" class="btn" disabled>Download Transcription</button>
+        </div>
     </div>
-    <script src="script.js" type="text/babel"></script>
+    <script src="script.js"></script>
 </body>
 </html>
