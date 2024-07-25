@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isRecording = false;
     let startTime;
     let timerInterval;
+    let fullTranscript = '';
 
     if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
@@ -26,7 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            transcription.value = finalTranscript + interimTranscript;
+            fullTranscript += finalTranscript;
+            transcription.value = fullTranscript + ' ' + interimTranscript;
+        };
+
+        recognition.onend = () => {
+            if (isRecording) {
+                recognition.start();
+            }
         };
 
         recognition.onerror = (event) => {
@@ -54,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recordButton.textContent = 'Stop Recording';
         recordButton.classList.add('recording');
         transcription.value = '';
+        fullTranscript = '';
         recognition.start();
         startTime = Date.now();
         updateTimer();
@@ -66,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recordButton.classList.remove('recording');
         recognition.stop();
         clearInterval(timerInterval);
-        downloadButton.disabled = !transcription.value.trim();
+        downloadButton.disabled = !fullTranscript.trim();
     }
 
     function updateTimer() {
@@ -77,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function downloadTranscription() {
-        const text = transcription.value;
+        const text = fullTranscript.trim();
         const blob = new Blob([text], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
