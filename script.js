@@ -2,9 +2,15 @@ console.log("Script starting...");
 
 try {
   const { useState, useRef, useEffect } = React;
-  const { Mic, StopCircle, Download, Check, AlertCircle, Lock, Shield } = lucideReact;
+  const { createIcons, icons } = lucide;
 
   console.log("React and lucide successfully loaded");
+
+  // Create a wrapper component for Lucide icons
+  const Icon = ({ name, ...props }) => {
+    const IconComponent = icons[name];
+    return IconComponent ? <IconComponent {...props} /> : null;
+  };
 
   const VoiceTranscriber = () => {
     console.log("VoiceTranscriber component rendering");
@@ -19,6 +25,7 @@ try {
 
     useEffect(() => {
       setIsSecureContext(window.isSecureContext);
+      createIcons();
     }, []);
 
     useEffect(() => {
@@ -113,7 +120,7 @@ try {
           <h1 className="card-title">Privacy-Focused Voice Transcriber</h1>
           <div className="card-content">
             <div className="alert info">
-              <Shield />
+              <Icon name="Shield" />
               <div>
                 <h2>Privacy Notice</h2>
                 <p>All processing occurs on your device. No data is sent to or stored on any server. Transcriptions are temporary and will be lost if not downloaded.</p>
@@ -121,7 +128,7 @@ try {
             </div>
             {!isSecureContext && (
               <div className="alert warning">
-                <Lock />
+                <Icon name="Lock" />
                 <div>
                   <h2>Secure Context Required</h2>
                   <p>This feature requires a secure connection (HTTPS). Please ensure you're accessing this app via a secure URL.</p>
@@ -130,7 +137,7 @@ try {
             )}
             {error && (
               <div className="alert error">
-                <AlertCircle />
+                <Icon name="AlertCircle" />
                 <div>
                   <h2>Error</h2>
                   <p>{error}</p>
@@ -140,20 +147,20 @@ try {
             <div className="button-group">
               {!isRecording && !isDone ? (
                 <button onClick={startRecording} className="btn primary">
-                  <Mic /> Start Recording
+                  <Icon name="Mic" /> Start Recording
                 </button>
               ) : isRecording ? (
                 <>
                   <button onClick={stopRecording} className="btn warning">
-                    <StopCircle /> Pause Recording
+                    <Icon name="StopCircle" /> Pause Recording
                   </button>
                   <button onClick={finishRecording} className="btn success">
-                    <Check /> Done Recording
+                    <Icon name="Check" /> Done Recording
                   </button>
                 </>
               ) : (
                 <button onClick={startRecording} className="btn primary">
-                  <Mic /> Record Again
+                  <Icon name="Mic" /> Record Again
                 </button>
               )}
             </div>
@@ -175,7 +182,7 @@ try {
               disabled={!transcript}
               className="btn primary"
             >
-              <Download /> Download Transcription
+              <Icon name="Download" /> Download Transcription
             </button>
           </div>
         </div>
