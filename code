@@ -1,0 +1,168 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Mic, StopCircle, Download, Check, AlertCircle, Lock, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+const VoiceTranscriber = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [isDone, setIsDone] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [timer, setTimer] = useState(0);
+  const [error, setError] = useState('');
+  const [isSecureContext, setIsSecureContext] = useState(false);
+  const recognitionRef = useRef(null);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    setIsSecureContext(window.isSecureContext);
+  }, []);
+
+  const startRecording = async () => {
+    setError('');
+    if (!isSecureContext) {
+      setError("This feature requires a secure context (HTTPS). Please ensure you're using a secure connection.");
+      return;
+    }
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        throw new Error("Your browser doesn't support speech recognition. Please try a different browser.");
+      }
+      
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+
+      recognitionRef.current.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        setTranscript(prevTranscript => prevTranscript + finalTranscript + ' ' + interimTranscript);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        setError(`Error occurred in recognition: ${event.error}`);
+      }
+
+      recognitionRef.current.start();
+      setIsRecording(true);
+      setIsDone(false);
+      setTimer(0);
+    } catch (err) {
+      setError(`${err.name}: ${err.message}`);
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const finishRecording = () => {
+    stopRecording();
+    setIsDone(true);
+  };
+
+  const downloadTranscription = () => {
+    const element = document.createElement('a');
+    const file = new Blob([transcript], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = 'transcription.txt';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f4f4f4] p-5">
+      <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle className="text-center">Privacy-Focused Voice Transcriber</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="info" className="mb-4">
+            <Shield className="h-4 w-4" />
+            <AlertTitle>Privacy Notice</AlertTitle>
+            <AlertDescription>
+              All processing occurs on your device. No data is sent to or stored on any server.
+              Transcriptions are temporary and will be lost if not downloaded.
+            </AlertDescription>
+          </Alert>
+          {!isSecureContext && (
+            <Alert variant="warning" className="mb-4">
+              <Lock className="h-4 w-4" />
+              <AlertTitle>Secure Context Required</AlertTitle>
+              <AlertDescription>
+                This feature requires a secure connection (HTTPS). 
+                Please ensure you're accessing this app via a secure URL.
+              </AlertDescription>
+            </Alert>
+          )}
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <div className="flex flex-col items-center mb-4">
+            {!isRecording && !isDone ? (
+              <Button onClick={startRecording} className="bg-[#007bff] text-white w-full mb-2">
+                <Mic className="mr-2" /> Start Recording
+              </Button>
+            ) : isRecording ? (
+              <>
+                <Button onClick={stopRecording} className="bg-yellow-500 text-white w-full mb-2">
+                  <StopCircle className="mr-2" /> Pause Recording
+                </Button>
+                <Button onClick={finishRecording} className="bg-green-500 text-white w-full mb-2">
+                  <Check className="mr-2" /> Done Recording
+                </Button>
+              </>
+            ) : (
+              <Button onClick={startRecording} className="bg-[#007bff] text-white w-full mb-2">
+                <Mic className="mr-2" /> Record Again
+              </Button>
+            )}
+            {isRecording && (
+              <div className="text-lg font-semibold text-red-500">
+                Recording... {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+              </div>
+            )}
+          </div>
+          <Textarea
+            value={transcript}
+            readOnly
+            className="w-full p-2 min-h-[200px] border border-gray-300 rounded-md"
+            placeholder="Transcription will appear here..."
+          />
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <Button
+            onClick={downloadTranscription}
+            disabled={!transcript}
+            className="bg-[#007bff] text-white"
+          >
+            <Download className="mr-2" /> Download Transcription
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+};
+
+export default VoiceTranscriber;
