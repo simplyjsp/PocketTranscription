@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let fullTranscript = '';
     let currentLanguage = '';
     let restartTimeout;
+    let debounceTimer;
+    let lastTranscript = '';
 
     const languages = {
         'es-ES': 'Spanish',
@@ -30,26 +32,35 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition.lang = 'en-US'; // Default to English
 
         recognition.onresult = (event) => {
-            let interimTranscript = '';
-            let finalTranscript = '';
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                let interimTranscript = '';
+                let finalTranscript = '';
 
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                    detectLanguage(finalTranscript);
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
                 }
-            }
 
-            fullTranscript += finalTranscript;
-            transcription.value = fullTranscript + (interimTranscript ? ' ' + interimTranscript : '');
+                // Only add to fullTranscript if it's new content
+                if (finalTranscript && finalTranscript !== lastTranscript) {
+                    fullTranscript += finalTranscript;
+                    lastTranscript = finalTranscript;
+                    detectLanguage(finalTranscript);
+                }
+
+                transcription.value = fullTranscript + (interimTranscript ? ' ' + interimTranscript : '');
+            }, 250); // Debounce for 250ms
         };
 
         recognition.onend = () => {
             if (isRecording) {
-                recognition.start();
-                restartRecognition();
+                setTimeout(() => {
+                    recognition.start();
+                }, 100); // Small delay before restarting
             }
         };
 
@@ -102,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearRecording() {
         stopRecording();
         fullTranscript = '';
+        lastTranscript = '';
         currentLanguage = '';
         transcription.value = '';
         timer.textContent = '00:00';
@@ -121,8 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
         restartTimeout = setTimeout(() => {
             if (isRecording) {
                 recognition.stop();
-                recognition.start();
-                restartRecognition();
+                setTimeout(() => {
+                    recognition.start();
+                    restartRecognition();
+                }, 100); // Small delay before restarting
             }
         }, 240000); // Restart every 4 minutes
     }
