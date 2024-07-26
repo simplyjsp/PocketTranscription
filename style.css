@@ -3,7 +3,7 @@ body {
     background-color: #1e2530;
     color: #7fffd4;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,17 +11,18 @@ body {
 }
 
 .container {
+    width: 100%;
+    max-width: 600px;
     text-align: center;
-    padding: 20px;
 }
 
 h1 {
-    font-size: 2.5em;
+    font-size: 2.5rem;
     margin-bottom: 10px;
 }
 
 .subtitle {
-    font-size: 1em;
+    font-size: 1rem;
     margin-bottom: 30px;
     opacity: 0.8;
 }
@@ -34,29 +35,58 @@ h1 {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.btn {
-    background-color: #7fffd4;
-    color: #1e2530;
-    border: none;
-    padding: 10px 20px;
-    font-size: 1em;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+.language-display {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    min-height: 24px;
 }
 
-.btn:hover {
-    background-color: #5fd4b1;
+.timer {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn.primary {
+    background-color: #7fffd4;
+    color: #1e2530;
+}
+
+.btn.primary:hover {
+    background-color: #6ce9c0;
+}
+
+.btn.secondary {
+    background-color: #ff7f7f;
+    color: #1e2530;
+}
+
+.btn.secondary:hover {
+    background-color: #ff6b6b;
 }
 
 .btn:disabled {
     background-color: #4a5568;
     cursor: not-allowed;
-}
-
-.timer {
-    font-size: 1.5em;
-    margin: 20px 0;
 }
 
 .transcription {
@@ -69,4 +99,27 @@ h1 {
     padding: 10px;
     margin-bottom: 20px;
     resize: none;
+    font-size: 1rem;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .glass-panel {
+        padding: 20px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
 }
