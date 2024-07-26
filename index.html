@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Transcriber</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -18,7 +18,9 @@
                 <button id="recordButton" class="btn primary">Start Recording</button>
                 <button id="clearButton" class="btn secondary">Clear</button>
             </div>
-            <textarea id="transcription" class="transcription" placeholder="Transcription will appear here..." readonly></textarea>
+            <div class="transcription-container">
+                <textarea id="transcription" class="transcription" placeholder="Transcription will appear here..." readonly></textarea>
+            </div>
             <button id="downloadButton" class="btn primary" disabled>Download Transcription</button>
         </div>
     </div>
