@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timer = document.getElementById('timer');
     const transcription = document.getElementById('transcription');
     const downloadButton = document.getElementById('downloadButton');
+    const debugInfo = document.getElementById('debugInfo');
 
     let recognition;
     let isRecording = false;
@@ -12,13 +13,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let fullTranscript = '';
     let lastProcessedIndex = 0;
 
-    if ('webkitSpeechRecognition' in window) {
-        recognition = new webkitSpeechRecognition();
+    function updateDebugInfo(message) {
+        debugInfo.textContent += message + '\n';
+        console.log(message);
+    }
+
+    function initializeSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            recognition = new SpeechRecognition();
+        } else {
+            updateDebugInfo('Speech recognition not supported in this browser.');
+            recordButton.textContent = 'Speech Recognition Not Supported';
+            recordButton.disabled = true;
+            return false;
+        }
+
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
 
+        recognition.onstart = () => {
+            updateDebugInfo('Speech recognition started');
+        };
+
         recognition.onresult = (event) => {
+            updateDebugInfo('Received recognition result');
             let interimTranscript = '';
             let finalTranscript = '';
 
@@ -36,21 +57,26 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         recognition.onend = () => {
+            updateDebugInfo('Speech recognition ended');
             if (isRecording) {
+                updateDebugInfo('Attempting to restart recognition');
                 recognition.start();
             }
         };
 
         recognition.onerror = (event) => {
-            console.error('Speech recognition error', event.error);
+            updateDebugInfo('Speech recognition error: ' + event.error);
             if (isRecording) {
                 stopRecording();
                 startRecording(); // Attempt to restart on error
             }
         };
-    } else {
-        recordButton.textContent = 'Speech Recognition Not Supported';
-        recordButton.disabled = true;
+
+        return true;
+    }
+
+    if (!initializeSpeechRecognition()) {
+        return; // Exit if speech recognition is not supported
     }
 
     recordButton.addEventListener('click', toggleRecording);
@@ -65,15 +91,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function startRecording() {
-        isRecording = true;
-        recordButton.textContent = 'Stop Recording';
-        recordButton.classList.add('recording');
-        recognition.start();
-        startTime = Date.now();
-        updateTimer();
-        timerInterval = setInterval(updateTimer, 1000);
-        lastProcessedIndex = 0;
+    async function startRecording() {
+        try {
+            // Request microphone permission explicitly
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            updateDebugInfo('Microphone permission granted');
+
+            isRecording = true;
+            recordButton.textContent = 'Stop Recording';
+            recordButton.classList.add('recording');
+            recognition.start();
+            startTime = Date.now();
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+            lastProcessedIndex = 0;
+        } catch (err) {
+            updateDebugInfo('Error accessing microphone: ' + err.message);
+        }
     }
 
     function stopRecording() {
@@ -92,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         timer.textContent = '00:00';
         downloadButton.disabled = true;
         lastProcessedIndex = 0;
+        debugInfo.textContent = '';
     }
 
     function updateTimer() {
